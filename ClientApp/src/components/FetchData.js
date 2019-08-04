@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { getList } from '../modules/Users/UsersRepository';
 
 export class FetchData extends Component {
   static displayName = FetchData.name;
@@ -7,7 +8,7 @@ export class FetchData extends Component {
     super(props);
     this.state = { forecasts: [], loading: true };
 
-    fetch('api/SampleData/WeatherForecasts')
+      getList()
       .then(response => response.json())
       .then(data => {
         this.setState({ forecasts: data, loading: false });
