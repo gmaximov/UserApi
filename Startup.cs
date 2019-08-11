@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -8,8 +9,11 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using System;
+using UserApiReact.Infrastructure;
 using UserApiReact.Models;
+using UserApiReact.Services;
+using UserApiReact.Utils;
 
 namespace UserApiReact
 {
@@ -34,31 +38,34 @@ namespace UserApiReact
                 {
                     options.TokenValidationParameters = new TokenValidationParameters()
                     {
-                        // укзывает, будет ли валидироваться издатель при валидации токена
                         ValidateIssuer = true,
-                        // строка, представляющая издателя
                         ValidIssuer = AuthOptions.ISSUER,
-
-                        // будет ли валидироваться потребитель токена
                         ValidateAudience = true,
-                        // установка потребителя токена
                         ValidAudience = AuthOptions.AUDIENCE,
-                        // будет ли валидироваться время существования
                         ValidateLifetime = true,
-
-                        // установка ключа безопасности
                         IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
-                        // валидация ключа безопасности
                         ValidateIssuerSigningKey = true,
                     };
 
                 });
+
+            services.AddAuthorization(options =>
+            {
+                foreach (PermissionType permission in Enum.GetValues(typeof(PermissionType)))
+                {
+                    options.AddPolicy(permission.ToString(),
+                        policy => policy.Requirements.Add(new PermissionRequirement(permission)));
+                }
+            });
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/build";
             });
+
+            services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+            services.AddScoped<PermissionService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -97,17 +104,6 @@ namespace UserApiReact
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
-        }
-    }
-    public class AuthOptions
-    {
-        public const string ISSUER = "UserApiReact";
-        public const string AUDIENCE = "https://localhost:44395/";
-        const string KEY = "4be67355-e3d1-4580-b777-3cffe1991d3c";   // ключ для шифрованияии
-        public const int LIFETIME = 1; // время жизни токена - 1 день
-        public static SymmetricSecurityKey GetSymmetricSecurityKey()
-        {
-            return new SymmetricSecurityKey(Encoding.ASCII.GetBytes(KEY));
         }
     }
 }

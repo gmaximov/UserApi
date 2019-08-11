@@ -8,13 +8,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using UserApiReact.Dto;
 using UserApiReact.Models;
+using UserApiReact.Utils;
 
 namespace UserApiReact.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : Controller
     {
         private readonly UserApiContext _context;
 
@@ -32,12 +34,10 @@ namespace UserApiReact.Controllers
             if (identity == null)
             {
                 Response.StatusCode = 400;
-                await Response.WriteAsync("Invalid login or password.");
                 return;
             }
 
             var now = DateTime.UtcNow;
-            // создаем JWT-токен
             var jwt = new JwtSecurityToken(
                     issuer: AuthOptions.ISSUER,
                     audience: AuthOptions.AUDIENCE,
@@ -61,11 +61,12 @@ namespace UserApiReact.Controllers
             User user = _context.Users.FirstOrDefault(x => x.Login == login && x.Password == password);
             if (user != null)
             {
-                user.Name = "123";
-                _context.SaveChanges();
                 var claims = new List<Claim>()
                     {
-                        new Claim(ClaimsIdentity.DefaultNameClaimType, user.Name)
+                        new Claim(ClaimsIdentity.DefaultNameClaimType, user.Name),
+                        new Claim(JwtRegisteredClaimNames.Sub, user.Name),
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                        new Claim("Id", user.Id.ToString()),
                     };
                 ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Token",
                     ClaimsIdentity.DefaultNameClaimType,

@@ -6,9 +6,14 @@ import { history } from './helpers/history';
 import { alertActions } from './modules/alerts/alert.actions';
 import { PrivateRoute } from './components/PrivateRoute';
 import { HomePage } from './components/HomePage';
-import { LoginPage } from './components/LoginPage';
-import { RegisterPage } from './components/RegisterPage';
+import { LoginPage } from './components/Auth/LoginPage';
+import { RegisterPage } from './components/Auth/RegisterPage';
 import { Layout } from './components/Layout';
+import { UserListPage } from './components/UserModule/UserListPage';
+import { UserEditPage } from './components/UserModule/UserEditPage';
+import { PersonEditPage } from './components/PersonModule/PersonEditPage';
+import { PersonListPage } from './components/PersonModule/PersonListPage';
+import { PersonAddPage } from './components/PersonModule/PersonAddPage';
 
 class App extends React.Component {
     constructor(props) {
@@ -29,6 +34,11 @@ class App extends React.Component {
                     <PrivateRoute exact path="/" component={HomePage} />
                     <Route path="/login" component={LoginPage} />
                     <Route path="/register" component={RegisterPage} />
+                    <PrivateRoute exact path="/users" component={UserListPage} />
+                    <PrivateRoute path="/users/edit/:id" component={UserEditPage} />
+                    <PrivateRoute exact path="/persons" component={PersonListPage} />
+                    <PrivateRoute path="/persons/create" component={PersonAddPage} />
+                    <PrivateRoute path="/persons/edit/:id" component={PersonEditPage} />
                 </Layout>
             </Router>
         );

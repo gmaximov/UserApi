@@ -1,5 +1,5 @@
-import { userConstants } from './user.constants';
-import { userService } from './user.service';
+import { userConstants } from './users.constants';
+import { userService } from './users.service';
 import { alertActions } from '../alerts/alert.actions';
 import { history } from '../../helpers/history';
 
@@ -8,6 +8,8 @@ export const userActions = {
     logout,
     register,
     getAll,
+    update,
+    get,
     delete: _delete
 };
 
@@ -50,7 +52,6 @@ function register(user) {
                     dispatch(alertActions.success('Registration successful'));
                 },
                 error => {
-                    console.log(error);
                     dispatch(failure(error));
                     dispatch(alertActions.error(error));
                 }
@@ -69,7 +70,10 @@ function getAll() {
         userService.getAll()
             .then(
                 users => dispatch(success(users)),
-                error => dispatch(failure(error))
+                error => {
+                    dispatch(failure(error));
+                    dispatch(alertActions.error(error));
+                }
             );
     };
 
@@ -85,11 +89,12 @@ function _delete(id) {
 
         userService.delete(id)
             .then(
-                user => { 
+                () => { 
                     dispatch(success(id));
                 },
                 error => {
                     dispatch(failure(id, error));
+                    dispatch(alertActions.error(error));
                 }
             );
     };
@@ -97,4 +102,43 @@ function _delete(id) {
     function request(id) { return { type: userConstants.DELETE_REQUEST, id } }
     function success(id) { return { type: userConstants.DELETE_SUCCESS, id } }
     function failure(id, error) { return { type: userConstants.DELETE_FAILURE, id, error } }
+}
+function get(id) {
+    return dispatch => {
+        dispatch(request());
+
+        return userService.get(id)
+            .then(
+                user => dispatch(success(user)),
+                error => {
+                    dispatch(failure(error));
+                    dispatch(alertActions.error(error));
+                }
+            );
+    };
+
+    function request() { return { type: userConstants.GET_REQUEST } }
+    function success(user) { return { type: userConstants.GET_SUCCESS, user } }
+    function failure(error) { return { type: userConstants.GET_FAILURE, error } }
+}
+function update(user) {
+    return dispatch => {
+        dispatch(request(user));
+
+        userService.update(user)
+            .then(
+                user => {
+                    dispatch(success(user));
+                    dispatch(alertActions.success('Edit successful'));
+                },
+                error => {
+                    dispatch(failure(error));
+                    dispatch(alertActions.error(error));
+                }
+            );
+    };
+
+    function request(user) { return { type: userConstants.EDIT_REQUEST, user } }
+    function success(user) { return { type: userConstants.EDIT_SUCCESS, user } }
+    function failure(error) { return { type: userConstants.EDIT_FAILURE, error } }
 }

@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { Spinner } from 'reactstrap';
 
-import { userActions } from '../modules/auth/user.actions';
+import { userActions } from '../../modules/users/users.actions';
 
 class RegisterPage extends React.Component {
     constructor(props) {
@@ -49,33 +50,35 @@ class RegisterPage extends React.Component {
             <div className="col-md-6 col-md-offset-3">
                 <h2>Register</h2>
                 <form name="form" onSubmit={this.handleSubmit}>
-                    <div className={'form-group' + (submitted && !user.name ? ' has-error' : '')}>
+                    <div className="form-group">
                         <label htmlFor="name">First Name</label>
-                        <input type="text" className="form-control" name="name" value={user.name} onChange={this.handleChange} />
+                        <input type="text" className={'form-control'+ (submitted && !user.name ? ' is-invalid' : '')} name="name" maxlength="30" value={user.name} onChange={this.handleChange} />
                         {submitted && !user.name &&
-                            <div className="help-block">First Name is required</div>
-                        }
-                    </div>
-                    <div className={'form-group' + (submitted && !user.login ? ' has-error' : '')}>
-                        <label htmlFor="login">Username</label>
-                        <input type="text" className="form-control" name="login" value={user.login} onChange={this.handleChange} />
-                        {submitted && !user.login &&
-                            <div className="help-block">Username is required</div>
-                        }
-                    </div>
-                    <div className={'form-group' + (submitted && !user.password ? ' has-error' : '')}>
-                        <label htmlFor="password">Password</label>
-                        <input type="password" className="form-control" name="password" value={user.password} onChange={this.handleChange} />
-                        {submitted && !user.password &&
-                            <div className="help-block">Password is required</div>
+                            <div className="invalid-feedback">First Name is required</div>
                         }
                     </div>
                     <div className="form-group">
-                        <button className="btn btn-primary">Register</button>
-                        {registering && 
-                            <img src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />
+                        <label htmlFor="login">Username</label>
+                        <input type="text" className={'form-control' + (submitted && !user.login ? ' is-invalid' : '')} name="login" maxlength="30" value={user.login} onChange={this.handleChange} />
+                        {submitted && !user.login &&
+                            <div className="invalid-feedback">Username is required</div>
                         }
-                        <Link to="/login" className="btn btn-link">Cancel</Link>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="password">Password</label>
+                        <input type="password" className={'form-control' + (submitted && !user.password ? ' is-invalid' : '')} name="password" maxlength="30" value={user.password} onChange={this.handleChange} />
+                        {submitted && !user.password &&
+                            <div className="invalid-feedback">Password is required</div>
+                        }
+                    </div>
+                    <div className="form-group">
+                        {
+                            (registering && <Spinner color="primary" />) ||
+                            <div className="form-group">
+                                <button className="btn btn-primary">Register</button>
+                                <Link to="/login" className="btn btn-link">Cancel</Link>
+                            </div>
+                        }
                     </div>
                 </form>
             </div>

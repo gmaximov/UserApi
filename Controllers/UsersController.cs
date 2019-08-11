@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using UserApiReact.Dto;
 using UserApiReact.Models;
+using UserApiReact.Utils;
 
 namespace UserApiReact.Controllers
 {
@@ -27,13 +29,15 @@ namespace UserApiReact.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = nameof(PermissionType.UserListView))]
         public async Task<JsonResult> GetUsers()
         {
-            var users = await _context.Users.ToListAsync();
+            var users = await _context.Users.Select(x => x.UserToUserDtoConvert()).ToListAsync();
             return new JsonResult(users);
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = nameof(PermissionType.UserView))]
         public async Task<ActionResult<User>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -47,32 +51,25 @@ namespace UserApiReact.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        [Authorize(Policy = nameof(PermissionType.UserEdit))]
+        public async Task<IActionResult> PutUser(int id, [FromBody] UserDto dto)
         {
-            if (id != user.Id)
+            if (id != dto.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
             {
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            dto.ApplyChangesToEntity(user);
 
-            return NoContent();
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         [AllowAnonymous]
@@ -85,11 +82,12 @@ namespace UserApiReact.Controllers
             {
                 var response = new
                 {
-                    message = "Username '" + dto.Login + "' is already taken"
+                    message = "Login '" + dto.Login + "' is already taken"
                 };
                 return BadRequest(response);
             }
-            var user = dto.ToModel();
+            var user = dto.RegisterUserDtoToUserConvert();
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
@@ -97,7 +95,8 @@ namespace UserApiReact.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult<User>> DeleteUser(int id)
+        [Authorize(Policy = nameof(PermissionType.UserDelete))]
+        public async Task<ActionResult> DeleteUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
@@ -108,11 +107,7 @@ namespace UserApiReact.Controllers
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
-            return user;
-        }
-        private bool UserExists(int id)
-        {
-            return _context.Users.Any(e => e.Id == id);
+            return Ok();
         }
     }
 }
